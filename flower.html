@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>A Letter For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&family=Parisienne&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init("b2Jpf79_QXEKGCtFY"); 
+   })();
+</script>
+
+<style>
+/* 1. LAYOUT & BASE */
+body {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
+    background: #dcdde1; 
+    height: 100vh;
+}
+
+/* BACKGROUND WITH OPACITY */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('assets/background-flower.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.5;
+    z-index: -2;
+}
+
+/* FLOWER ANIMATION CONTAINER */
+#petal-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; /* Allows clicking through the petals */
+    z-index: -1;
+}
+
+.petal {
+    position: absolute;
+    background-color: #ffb7c5; /* Soft Pink */
+    border-radius: 150% 0 150% 0;
+    opacity: 0.7;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) translateX(100px) rotate(360deg); opacity: 0; }
+}
+
+/* ... (Rest of your existing Envelope & Card CSS) ... */
+.container-wrapper { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; }
+.container-row { display: flex; flex-direction: column; align-items: center; }
+.col-1 { display: flex; justify-content: center; padding: 10px; }
+.col-2 { display: flex; justify-content: center; padding: 10px; height: 50px; }
+.hidden { display: none !important; }
+
+.envelope { position: relative; width: 550px; height: 350px; background: #ffffff; border: 8px solid #454545; box-sizing: border-box; perspective: 1500px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+.flower-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 6; display: flex; justify-content: center; align-items: center; opacity: 0; transition: transform 1s ease-out 0.4s, opacity 0.8s ease 0.4s; }
+.flower-layer img { width: 80%; height: auto; object-fit: contain; }
+
+.interaction-layer { opacity: 0; visibility: hidden; transition: opacity 0.8s ease; }
+.show-button { opacity: 1 !important; visibility: visible !important; }
+
+.next-btn { font-family: 'Montserrat', sans-serif; background: transparent; color: #000; border: none; padding: 10px 24px; cursor: pointer; text-transform: capitalize; letter-spacing: 2px; font-size: 20px; transition: all 0.3s; font-style: italic; }
+.next-btn:hover { color: #fff; transform: scale(1.1); }
+
+.top-wrapper { position: absolute; width: calc(100% + 16px); height: calc(100% + 16px); top: -8px; left: -8px; z-index: 10; transform-origin: top; transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.4)); }
+.top-flap-front { position: absolute; width: 100%; height: 100%; background: #414141; clip-path: polygon(0% 0%, 100% 0%, 100% 20%, 50% 55%, 0% 20%); backface-visibility: hidden; z-index: 2; }
+.top-flap-back { position: absolute; width: 100%; height: 100%; background: #ffffff; border: 12px solid #454545; box-sizing: border-box; clip-path: polygon(0% 0%, 100% 0%, 100% 20%, 50% 55%, 0% 20%); transform: rotateX(180deg) translateZ(1px); backface-visibility: hidden; z-index: 1; }
+.flap-wrapper { position: absolute; width: calc(100% + 16px); height: calc(100% + 16px); top: -8px; left: -8px; }
+.bottom-wrapper { z-index: 9; filter: drop-shadow(0 -5px 8px rgba(0,0,0,0.3)); }
+.bottom-flap { background: #454545; clip-path: polygon(0% 100%, 100% 100%, 50% 45%); width: 100%; height: 100%; }
+.side-wrapper { z-index: 8; }
+.left-flap { background: #454545; clip-path: polygon(0% 20%, 55% 50%, 0% 100%); width: 100%; height: 100%; }
+.right-flap { background: #454545; clip-path: polygon(100% 20%, 45% 50%, 100% 100%); width: 100%; height: 100%; }
+
+.card { position: absolute; width: 90%; height: 80%; background: #fdfaf0; left: 5%; bottom: 10px; z-index: 7; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; opacity: 0; visibility: hidden; transition: transform 1s ease-out 0.4s, opacity 0.6s ease 0.4s; }
+.name { font-family: 'Parisienne', cursive; font-size: 52px; color: #fd3c3c; margin: 0; }
+.seal-button { font-family: 'Parisienne', cursive; font-size:24px; position: absolute; top: 185px; left: 50%; color:#fff; transform: translate(-50%, -50%); width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #aa0606, #b90000); border: 2px solid #afafaf; cursor: pointer; z-index: 15; }
+
+.envelope.is-open .top-wrapper { transform: rotateX(180deg); z-index: 4; }
+.envelope.is-open .seal-button { opacity: 0; pointer-events: none; }
+.envelope.is-open .card { opacity: 1; visibility: visible; transform: translateY(-160px); z-index: 7; }
+.envelope.is-open .flower-layer { opacity: 1; transform: translateY(-180px); }
+
+.full-paper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 550px; background: #fff; padding: 50px; z-index: 100; box-shadow: 0 0 100px rgba(0,0,0,0.4); text-align: center; max-height: 80vh; overflow-y: auto; }
+.btn-group { display: flex; justify-content: center; gap: 20px; margin-top: 30px; position: relative; }
+.yes-btn { background: #fd3c3c; color: white; padding: 10px 30px; border-radius: 5px; font-weight: 300; }
+.no-btn { background: #454545; color: white; padding: 10px 30px; border-radius: 5px; font-weight: 300; position: relative; transition: 0.1s; }
+.heart { color: #fd3c3c; font-size: 60px; animation: beat .6s infinite alternate; display: block; margin-bottom: 20px; }
+@keyframes beat { to { transform: scale(1.2); } }
+</style>
+</head>
+<body>
+
+<div id="petal-container"></div>
+
+<div class="container-wrapper">
+    <div class="container-row">
+        <div class="col-1">
+            <div id="envelopeContainer" class="envelope">
+                <div class="flower-layer"><img src="Assets/rename.png" alt="Flowers"></div>
+                <div class="card">
+                    <p style="font-size: 14px; font-style: italic; color: #2e2e30;">To the woman of rare worth and gentle grace</p>
+                    <h2 class="name">Darlene Shaira</h2>
+                    <p style="font-size: 14px; font-style: italic; color: #2e2e30;">You are worthy of the love you so freely give to others.</p>
+                </div>
+                <div class="top-wrapper"><div class="top-flap-front"></div><div class="top-flap-back"></div></div>
+                <div class="flap-wrapper side-wrapper"><div class="left-flap"></div></div>
+                <div class="flap-wrapper side-wrapper"><div class="right-flap"></div></div>
+                <div class="flap-wrapper bottom-wrapper"><div class="bottom-flap"></div></div>
+                <button class="seal-button" onclick="openEnvelope()">Open</button>
+            </div>
+
+            <div id="step3" class="hidden full-paper">
+                <h2 style="font-family: 'Parisienne', cursive; font-size: 45px; color:#fd3c3c; margin-top:0;">To You Shai,</h2>
+                <p style="font-size: 16px; line-height: 1.6;">You don’t have to pretend you’re okay. You don’t have to be strong every moment. It’s alright to feel the hurt, to miss what was, and to take all the time you need to heal.</p>
+                <p style="font-size: 16px; line-height: 1.6;">What you’re feeling right now does not take away your worth. Slowly, the light will return to the places that feel dim today.</p>
+                <p style="font-size: 16px; line-height: 1.6;">Until that happens, be gentle with yourself. Never forget—you are still loved, still important, and still deeply treasured.</p>
+                <button class="next-btn" style="color: #fff; background: #000; border-radius: 5px; margin-top:10px;" onclick="showQuestion()">Continue</button>
+            </div>
+
+            <div id="step4" class="hidden full-paper">
+                <h2 id="mainHeading" style="font-family: 'Parisienne', cursive; font-size: 50px; color:#fd3c3c;">Will you promise to be okay?</h2>
+                <p id="chanceMessage" class="hidden" style="font-style: italic; color: #2e2e30; font-size: 18px; margin-top: 10px;">Can you do it?</p>
+                <div class="btn-group">
+                    <button id="yesBtn" class="next-btn yes-btn" onclick="handleYesClick()">Yes!</button>
+                    <button id="noBtn" class="next-btn no-btn" onclick="handleNoClick()" onmouseover="moveNoButton()">No</button>
+                </div>
+            </div>
+
+            <div id="step5" class="hidden full-paper">
+                <div class="heart">❤️</div>
+                <h2 style="font-family: 'Parisienne', cursive; font-size: 50px; color:#fd3c3c;">It's a Promise!</h2>
+                <p style="font-size: 18px; line-height: 1.6;">I'm so happy you said yes. I hope you will be okay sooner or later!</p>
+            </div>
+        </div>
+        
+        <div class="col-2">
+            <div class="interaction-layer" id="btnLayer">
+                <button class="next-btn" onclick="showLetter()">Please Continue...</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let interactionMode = "initial"; 
+
+// PETAL ANIMATION SCRIPT
+function createPetal() {
+    const container = document.getElementById('petal-container');
+    const petal = document.createElement('div');
+    petal.classList.add('petal');
+    
+    // Randomize size and position
+    const size = Math.random() * 15 + 10 + 'px';
+    petal.style.width = size;
+    petal.style.height = size;
+    petal.style.left = Math.random() * 100 + 'vw';
+    petal.style.animationDuration = Math.random() * 3 + 4 + 's'; // 4-7 seconds
+    petal.style.delay = Math.random() * 5 + 's';
+
+    container.appendChild(petal);
+
+    // Remove petal after animation ends
+    setTimeout(() => { petal.remove(); }, 7000);
+}
+
+// Generate petals every 300ms
+setInterval(createPetal, 300);
+
+function openEnvelope() {
+    document.getElementById('envelopeContainer').classList.add('is-open');
+    setTimeout(() => { document.getElementById('btnLayer').classList.add('show-button'); }, 1200);
+}
+
+function showLetter() {
+    document.getElementById('envelopeContainer').style.display = 'none';
+    document.getElementById('btnLayer').classList.remove('show-button');
+    document.getElementById('step3').classList.remove('hidden');
+}
+
+function showQuestion() {
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('step4').classList.remove('hidden');
+}
+
+function handleNoClick() {
+    if (interactionMode === "initial") {
+        interactionMode = "plea";
+        document.getElementById('mainHeading').innerText = "I know it's hard...";
+        document.getElementById('chanceMessage').classList.remove('hidden');
+        document.getElementById('yesBtn').innerText = "I will try";
+        document.getElementById('noBtn').classList.add('hidden');
+    }
+}
+
+function handleYesClick() {
+    if (interactionMode === "plea") {
+        interactionMode = "moving";
+        document.getElementById('mainHeading').innerText = "Will you promise to be okay?";
+        document.getElementById('chanceMessage').classList.add('hidden');
+        document.getElementById('yesBtn').innerText = "Yes!";
+        const noBtn = document.getElementById('noBtn');
+        noBtn.classList.remove('hidden');
+        noBtn.style.position = 'relative';
+        noBtn.style.left = '0'; noBtn.style.top = '0';
+    } else {
+        celebrate();
+    }
+}
+
+function moveNoButton() {
+    if (interactionMode === "moving") {
+        const noBtn = document.getElementById('noBtn');
+        noBtn.style.position = 'fixed';
+        const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+        const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+        noBtn.style.left = x + 'px';
+        noBtn.style.top = y + 'px';
+    }
+}
+
+function celebrate() {
+    document.getElementById('step4').classList.add('hidden');
+    document.getElementById('step5').classList.remove('hidden');
+    emailjs.send("service_0hhcy4e", "template_zgh82uw", {
+        to_name: "Darlene Shaira",
+        message: "She promised to be okay!"
+    });
+}
+</script>
+</body>
+</html>
